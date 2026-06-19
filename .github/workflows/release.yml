@@ -1,13 +1,10 @@
 name: Release
 
-# Runs automatically whenever you push a tag that starts with "v"
-# e.g.  git tag v0.1.0  &&  git push origin v0.1.0
 on:
   push:
     tags:
       - "v*"
 
-# The workflow needs permission to create a release in your repo
 permissions:
   contents: write
 
@@ -19,7 +16,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # The asset "name" here MUST match the download links on your website.
           - name: tdo-aarch64-linux
             os: ubuntu-latest
             target: aarch64-unknown-linux-musl
@@ -36,7 +32,6 @@ jobs:
             os: windows-latest
             target: x86_64-pc-windows-msvc
             use_cross: false
-
     steps:
       - name: Check out the code
         uses: actions/checkout@v4
@@ -46,7 +41,6 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      # "cross" uses Docker to build Linux binaries for other CPUs (like ARM64)
       - name: Install cross
         if: matrix.use_cross
         uses: taiki-e/install-action@v2

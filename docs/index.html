@@ -5,15 +5,263 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>tdo — Terminal Daily Organizer</title>
   <style>
-    /* ... (see full version below) */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0e0e10;
+      --bg2: #18181b;
+      --bg3: #232329;
+      --border: rgba(255,255,255,0.08);
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --accent: #22c55e;
+      --accent2: #16a34a;
+      --code-bg: #111113;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 2rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(14,14,16,0.95); backdrop-filter: blur(8px); z-index: 10; }
+    .logo { font-size: 1.3rem; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta { background: var(--accent); color: #fff; padding: 0.45rem 1.1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+    .nav-cta:hover { background: var(--accent2); }
+
+    .hero { text-align: center; padding: 5rem 2rem 3rem; max-width: 720px; margin: 0 auto; }
+    .hero-badge { display: inline-block; background: rgba(34,197,94,0.12); color: var(--accent); border: 1px solid rgba(34,197,94,0.3); border-radius: 20px; font-size: 0.78rem; font-weight: 600; padding: 0.3rem 0.9rem; margin-bottom: 1.5rem; letter-spacing: 0.5px; text-transform: uppercase; }
+    h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.15; letter-spacing: -1px; margin-bottom: 1.2rem; }
+    h1 span { color: var(--accent); }
+    .hero p { font-size: 1.15rem; color: var(--muted); max-width: 520px; margin: 0 auto 2.5rem; }
+    .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { background: var(--accent); color: #fff; padding: 0.75rem 1.8rem; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 0.95rem; transition: background 0.2s; display: inline-block; }
+    .btn-primary:hover { background: var(--accent2); }
+    .btn-secondary { background: var(--bg3); color: var(--text); padding: 0.75rem 1.8rem; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 0.95rem; border: 1px solid var(--border); display: inline-block; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.06); }
+
+    .terminal-wrap { max-width: 680px; margin: 3.5rem auto 0; padding: 0 1.5rem; }
+    .terminal { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; font-family: 'Menlo', 'Fira Code', monospace; font-size: 0.82rem; }
+    .terminal-bar { display: flex; align-items: center; gap: 6px; padding: 0.7rem 1rem; background: var(--bg2); border-bottom: 1px solid var(--border); }
+    .dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; } .dot-y { background: #febc2e; } .dot-g { background: #28c840; }
+    .terminal-title { font-size: 0.72rem; color: var(--muted); margin: 0 auto; }
+    .terminal-body { padding: 1.2rem 1.4rem; line-height: 1.9; }
+    .p { color: #22c55e; } .c { color: #e2e8f0; } .g { color: #22c55e; } .y { color: #fbbf24; } .d { color: #475569; } .b { color: #38bdf8; }
+
+    section { padding: 5rem 2rem; }
+    .label { text-align: center; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 0.8rem; }
+    h2 { text-align: center; font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; letter-spacing: -0.5px; margin-bottom: 1rem; }
+    .sub { text-align: center; color: var(--muted); max-width: 480px; margin: 0 auto 3rem; }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1.2rem; max-width: 900px; margin: 0 auto; }
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+    .card-icon { font-size: 1.5rem; margin-bottom: 0.8rem; }
+    .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .card p { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+
+    .install-wrap { max-width: 640px; margin: 0 auto; }
+    .install-box { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.4rem 1.6rem; font-family: monospace; font-size: 0.85rem; line-height: 2.1; }
+    .ic { color: #4ade80; } .im { color: #e2e8f0; }
+
+    .dl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; max-width: 860px; margin: 0 auto; }
+    .dl-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem; }
+    .dl-card.featured { border-color: rgba(34,197,94,0.4); }
+    .platform { display: flex; align-items: center; gap: 0.6rem; font-weight: 600; font-size: 0.95rem; }
+    .arch { font-size: 0.78rem; color: var(--muted); background: var(--bg3); padding: 0.2rem 0.6rem; border-radius: 4px; font-family: monospace; }
+    .dl-btn { display: block; text-align: center; background: rgba(34,197,94,0.1); color: var(--accent); border: 1px solid rgba(34,197,94,0.25); padding: 0.55rem; border-radius: 7px; font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+    .dl-btn:hover { background: rgba(34,197,94,0.2); }
+    .req { font-size: 0.7rem; background: rgba(34,197,94,0.15); color: var(--accent); padding: 0.15rem 0.55rem; border-radius: 4px; font-weight: 600; }
+
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.2rem; max-width: 780px; margin: 0 auto; }
+    .price-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 2rem 1.5rem; }
+    .price-card.pop { border-color: rgba(34,197,94,0.4); }
+    .pop-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); background: rgba(34,197,94,0.12); display: inline-block; padding: 0.2rem 0.7rem; border-radius: 20px; margin-bottom: 1rem; }
+    .price-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .price-amount { font-size: 2.4rem; font-weight: 800; margin-bottom: 0.2rem; }
+    .price-amount span { font-size: 1rem; font-weight: 400; color: var(--muted); }
+    .price-desc { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.5rem; }
+    .price-features { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
+    .price-features li { font-size: 0.875rem; color: var(--muted); padding-left: 1.2rem; position: relative; }
+    .price-features li::before { content: '✓'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+    .price-btn { display: block; text-align: center; padding: 0.65rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; }
+    .price-btn.green { background: var(--accent); color: #fff; }
+    .price-btn.green:hover { background: var(--accent2); }
+    .price-btn.outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .price-btn.outline:hover { background: var(--bg3); }
+
+    footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; text-align: center; color: var(--muted); font-size: 0.82rem; }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 600px) { nav { padding: 1rem; } .nav-links { display: none; } }
   </style>
 </head>
 <body>
-  <header>
-    <h1>📋 tdo</h1>
-    <p>Stay in flow. Manage tasks without leaving your terminal.</p>
-    <a href="#download" class="cta">Download Free</a>
-  </header>
-  ...
+
+<nav>
+  <span class="logo">📋 tdo</span>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#install">Install</a></li>
+    <li><a href="#download">Download</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="https://github.com/abdulrahmanhassan2231/Terminal-Daily-organizer-or-Tdo-">GitHub ↗</a></li>
+  </ul>
+  <a href="#download" class="nav-cta">Download</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">⚡ Built in Rust · Blazing fast · Offline-first</div>
+  <h1>Stay in flow.<br><span>Manage tasks</span> from your terminal.</h1>
+  <p>Stop switching to Notion or Trello. <strong>tdo</strong> is a fast, private, offline CLI task manager built for developers who live in the terminal.</p>
+  <div class="hero-btns">
+    <a href="#download" class="btn-primary">⬇ Download Free</a>
+    <a href="https://github.com/abdulrahmanhassan2231/Terminal-Daily-organizer-or-Tdo-" class="btn-secondary">View Source →</a>
+  </div>
+</div>
+
+<div class="terminal-wrap">
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <span class="terminal-title">bash — ~/project</span>
+    </div>
+    <div class="terminal-body">
+      <div><span class="p">$ </span><span class="c">tdo add "Fix auth token bug" --priority high</span></div>
+      <div><span class="g">Task #1 added: Fix auth token bug</span></div>
+      <br>
+      <div><span class="p">$ </span><span class="c">tdo add "Write unit tests"</span></div>
+      <div><span class="g">Task #2 added: Write unit tests</span></div>
+      <br>
+      <div><span class="p">$ </span><span class="c">tdo list</span></div>
+      <div><span class="d">─────────────────────────────</span></div>
+      <div>&nbsp;<span class="y">[todo]</span> #1 (high) Fix auth token bug</div>
+      <div>&nbsp;<span class="y">[todo]</span> #2 (med) Write unit tests</div>
+      <div><span class="d">─────────────────────────────</span></div>
+      <div><span class="d">2 total, 2 pending</span></div>
+      <br>
+      <div><span class="p">$ </span><span class="c">tdo done 1</span></div>
+      <div><span class="g">Task #1 marked as done!</span></div>
+      <br>
+      <div><span class="p">$ </span><span class="c">tdo export --output daily.md</span></div>
+      <div><span class="g">Tasks exported to daily.md</span></div>
+    </div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="label">Why tdo</div>
+  <h2>Built for developers who hate context-switching</h2>
+  <p class="sub">Every feature is designed to keep you in the terminal and out of slow, bloated web apps.</p>
+  <div class="grid-3">
+    <div class="card"><div class="card-icon">⚡</div><h3>Instant startup</h3><p>Single static binary. No runtime, no VM. Starts in under 5ms even on slow machines.</p></div>
+    <div class="card"><div class="card-icon">🔒</div><h3>Fully offline</h3><p>Tasks live in a local JSON file. No account, no cloud, no internet connection needed. Ever.</p></div>
+    <div class="card"><div class="card-icon">🎨</div><h3>Colored output</h3><p>Priority-coded colors and clean formatting keep your task list readable at a glance.</p></div>
+    <div class="card"><div class="card-icon">📤</div><h3>Markdown export</h3><p>Export your task list to Markdown for standups, Notion paste-ins, or daily logs.</p></div>
+    <div class="card"><div class="card-icon">🦀</div><h3>Written in Rust</h3><p>Memory-safe, zero-overhead. Ships as a statically linked binary that runs anywhere.</p></div>
+    <div class="card"><div class="card-icon">📦</div><h3>Single binary</h3><p>Drop it in /usr/local/bin and done. No package manager, no dependencies at all.</p></div>
+  </div>
+</section>
+
+<section id="install" style="padding-top:0">
+  <div class="label">Get started</div>
+  <h2>Up and running in 30 seconds</h2>
+  <p class="sub">Download the binary for your platform and drop it on your PATH.</p>
+  <div class="install-wrap">
+    <div class="install-box">
+      <div><span class="ic"># Download the binary</span></div>
+      <div><span class="im">curl -Lo tdo https://github.com/abdulrahmanhassan2231/Terminal-Daily-organizer-or-Tdo-/releases/latest/download/tdo-aarch64-linux</span></div>
+      <div><span class="ic"># Make it executable</span></div>
+      <div><span class="im">chmod +x tdo</span></div>
+      <div><span class="ic"># Move to PATH</span></div>
+      <div><span class="im">sudo mv tdo /usr/local/bin/</span></div>
+      <div><span class="ic"># Start using it!</span></div>
+      <div><span class="im">tdo add "My first task"</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="download" style="padding-top:2rem">
+  <div class="label">Downloads</div>
+  <h2>All platforms</h2>
+  <p class="sub">Statically linked — just download and run, no installation needed.</p>
+  <div class="dl-grid">
+    <div class="dl-card featured">
+      <div class="platform">🐧 Linux <span class="req">required</span></div>
+      <div class="arch">aarch64-linux-musl</div>
+      <a href="https://github.com/abdulrahmanhassan2231/Terminal-Daily-organizer-or-Tdo-/releases/latest/download/tdo-aarch64-linux" class="dl-btn">⬇ Download (ARM64)</a>
+    </div>
+    <div class="dl-card">
+      <div class="platform">🐧 Linux</div>
+      <div class="arch">x86_64-linux-musl</div>
+      <a href="https://github.com/abdulrahmanhassan2231/Terminal-Daily-organizer-or-Tdo-/releases/latest/download/tdo-x86_64-linux" class="dl-btn">⬇ Download (x64)</a>
+    </div>
+    <div class="dl-card">
+      <div class="platform">🍎 macOS</div>
+      <div class="arch">x86_64-apple-darwin</div>
+      <a href="https://github.com/abdulrahmanhassan2231/Terminal-Daily-organizer-or-Tdo-/releases/latest/download/tdo-x86_64-macos" class="dl-btn">⬇ Download (Intel)</a>
+    </div>
+    <div class="dl-card">
+      <div class="platform">🪟 Windows</div>
+      <div class="arch">x86_64-pc-windows-gnu</div>
+      <a href="https://github.com/abdulrahmanhassan2231/Terminal-Daily-organizer-or-Tdo-/releases/latest/download/tdo-x86_64-windows.exe" class="dl-btn">⬇ Download (.exe)</a>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="label">Pricing</div>
+  <h2>Simple, honest pricing</h2>
+  <p class="sub">tdo is free forever for solo developers. Pay only if you want team sync or integrations.</p>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-name">Solo</div>
+      <div class="price-amount">$0<span>/forever</span></div>
+      <div class="price-desc">For individual developers who live in the terminal.</div>
+      <ul class="price-features">
+        <li>Unlimited local tasks</li>
+        <li>All CLI commands</li>
+        <li>Markdown export</li>
+        <li>All platform binaries</li>
+        <li>Open source (MIT)</li>
+      </ul>
+      <a href="#download" class="price-btn outline">Download free</a>
+    </div>
+    <div class="price-card pop">
+      <div class="pop-label">Most popular</div>
+      <div class="price-name">Team Sync</div>
+      <div class="price-amount">$5<span>/mo per user</span></div>
+      <div class="price-desc">Sync tasks across machines and share with teammates.</div>
+      <ul class="price-features">
+        <li>Everything in Solo</li>
+        <li>Cloud sync (encrypted)</li>
+        <li>Shared team task boards</li>
+        <li>Slack and GitHub integration</li>
+        <li>Priority email support</li>
+      </ul>
+      <a href="https://github.com/abdulrahmanhassan2231/Terminal-Daily-organizer-or-Tdo-" class="price-btn green">Join waitlist →</a>
+    </div>
+    <div class="price-card">
+      <div class="price-name">Enterprise</div>
+      <div class="price-amount">Custom</div>
+      <div class="price-desc">For teams with SSO, audit logs, and compliance needs.</div>
+      <ul class="price-features">
+        <li>Everything in Team Sync</li>
+        <li>SSO / SAML</li>
+        <li>Audit logs</li>
+        <li>Self-hosted option</li>
+        <li>Dedicated support</li>
+      </ul>
+      <a href="mailto:hello@example.com" class="price-btn outline">Contact us</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Built with 🦀 Rust · Licensed MIT · <a href="https://github.com/abdulrahmanhassan2231/Terminal-Daily-organizer-or-Tdo-">GitHub</a> · <a href="mailto:hello@example.com">Contact</a></p>
+  <p style="margin-top:0.5rem">© 2025 tdo · Made for developers who hate leaving the terminal</p>
+</footer>
+
 </body>
 </html>

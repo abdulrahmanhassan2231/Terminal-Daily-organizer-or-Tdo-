@@ -1,4 +1,3 @@
-cat > README.md << 'EOF'
 # tdo — Terminal Daily Organizer
 
 A fast, offline task manager that lives in your terminal. Capture, list, complete, and export your daily tasks without ever leaving the keyboard. Built in Rust.
